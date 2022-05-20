@@ -1,0 +1,23 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+{% for row in data %}
+
+<h3>{{ row}} </h3>
+
+{% endfor %}
+
+
+<form action="/input" method="get">
+    <input type="text" name="text" />
+    <input type="submit" value="submit" />
+</form>
+
+</body>
+
+
+</html>

@@ -1,30 +1,30 @@
 import re
+import requests
+import datetime
+from transitions import Machine
+import random
+from flask import Flask, request, render_template
+import json
+
+intent_url = "http://127.0.0.1:5000/predict"
 
 class RuleBasedDialog:
-
-
-    intent_lookup_table = (
-         'affirm',
-	 'book',
-	 'confirm',
-	 'goodbye',
-	 'greeting',
-	 'inform',
-	 'moreinfo',
-	 'negate',
-	 'request',
-	 'request_alts',
-	 'request_compare',
-	 'switch_frame',
-	 'thankyou')
 
 
     def __init__(self):
         print("")
     
     def get_intent(self, userInput):
+    
+        response = requests.get(intent_url, params={"text": userInput})
         
-        ask_question_regex = r"(.*) book (.*)"
+        intent = str(response.text)
+        
+        print("Intent detected for {0}: \n{1}".format(userInput, intent))
+        
+        return intent
+        
+        """ask_question_regex = r"(.*) book (.*)"
         clarity_regex = r"Do|What|Are|Can (.*)"
         new_query_regex = r"(.*) trip|package|options (.*)"
         affirm_regex = r"(.*) confirm|okay|book|take (.*)"
@@ -39,56 +39,60 @@ class RuleBasedDialog:
         elif re.match(affirm_regex, userInput):
             return "affirm"
         else:
-            return "negate"
+            return "negate" """
         
     def dialog_policy(self, intent, previousStates, transitions):
     
-    
-    
-    
-    
-    
-       
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        if intent == "inform" and previousStates[-1] == "greetings":
+        #User gives some information or intents to book a package
+        if intent in ["inform","book"] and previousStates[-1] == "greetings":
+            return [x for x in transitions if x["trigger"] == "clarity"][0]
+            
+        #User doesn't intent to book. Ask the question    
+        elif previousStates[-1] == "greetings":
             return [x for x in transitions if x["trigger"] == "ask_question"][0]
         
-        elif intent == "clarity" and previousStates[-1] == "inform":
+        #Chatbot asked the question, user wants to book
+        elif intent in ["inform","book"] and previousStates[-1] == "ask_question":
             return [x for x in transitions if x["trigger"] == "clarity"][0]
         
-        elif intent == "confirm" and previousStates[-1] == "inform":
-            return [x for x in transitions if x["trigger"] == "confirm"][0]
-        
-        elif intent in ["affirm", "thankyou", "goodbye"] and previousStates[-1] == "affirm":
-            return [x for x in transitions if x["trigger"] == "affirm_end"][0]
-        
-        elif intent == "switch_frame" and previousStates[-1] == "affirm":
+        #Chatbot asked the question, user doesn't intent to book. Ask the question again, and again, and again, and.....
+        elif previousStates[-1] == "ask_question":
             return [x for x in transitions if x["trigger"] == "ask_question"][0]
         
+        #User intents to change information
+        elif intent == "switch_frame" and previousStates[-1] == "inform":
+            return [x for x in transitions if x["trigger"] == "ask_update"][0]
+        
+        #User updates chatbot with new information
+        elif intent in ["inform","book"] and previousStates[-1] == "update":
+            return [x for x in transitions if x["trigger"] == "update_info"][0]
+            
+        #User wants to confirm booking the package
+        elif intent == "affirm" and previousStates[-1] == "affirm":
+            return [x for x in transitions if x["trigger"] == "end_convo"][0]
+        
+        #User doesn't want to confirm booking the package
+        elif intent == "negate" and previousStates[-1] == "affirm":
+            return [x for x in transitions if x["trigger"] == "ask_update"][0]
+        
+        #User wants to end the conversation
+        elif intent in ["thankyou", "goodbye"]:
+            return [x for x in transitions if x["trigger"] == "end_convo"][0]
         
         
-        
+          
         
 
 class DialogFrame:
     """ Knowledge representation for the Trip package booking """
     
     slot = {
-      "dst_city" = None,
-      "sou_city" = None,
-      "budget" = None,
-      "start_date" = None,
-      "end_date" = None,
-      "people" = None
+      "dst_city": None,
+      "sou_city": None,
+      "budget": None,
+      "start_date": None,
+      "end_date": None,
+      "people": None
     }
     
     def __init__(object):
@@ -97,14 +101,14 @@ class DialogFrame:
     
     def checkForAllInfo(self):
     
+    
         remaining_slots = []
         
-    	for key, value in self.slot.items():
-    		if value is None:
-    			remaining_slots.append(key)
+        for key, value in self.slot.items():
+        	if value is None:
+        		remaining_slots.append(key)
     
-    
-    	return remaining_slots
+        return remaining_slots
     
         
     def extract_entities(self, userInput):
@@ -165,40 +169,42 @@ class DialogFrame:
         
         #END
         
-        self.sou_city = "Gotham City"
-        self.dst_city = "Minas Anor"
-        self.budget = 300
-        self.start_date = datetime.datetime.now()
-        self.end_date = datetime.datetime.now()
-        self.people = 4
+        print(self.slot)
         
-        print(self.sou_city)
-        print(self.dst_city)
-        print(self.budget)
-        print(self.start_date)
-        print(self.end_date)
-        print(self.people)
+        self.slot["sou_city"] = "Gotham City"
+        self.slot["dst_city"] = "Minas Anor"
+        self.slot["budget"] = 300
+        self.slot["start_date"] = datetime.datetime.now()
+        self.slot["end_date"] = datetime.datetime.now()
+        self.slot["people"] = 4
+        
+        print(self.slot["sou_city"])
+        print(self.slot["dst_city"])
+        print(self.slot["budget"])
+        print(self.slot["start_date"])
+        print(self.slot["end_date"])
+        print(self.slot["people"])
         
         
-from transitions import Machine
-import random
-import sys
 
 class DialogFlow(object):
-    states = ["greetings", "inform", "affirm", "update", "end"]
+    states = ["greetings", "question", "inform", "affirm", "update", "end"]
     userInput = ""
     previousStates = []
     frame = DialogFrame()
     transitions = [
-        {"trigger": "initialize", "source": "dummy", "dest": "greetings", "after": "get_user_input"},
-        {"trigger": "ask_question", "source": "greetings", "dest": "inform", "after": "get_user_input"},
-        {"trigger": "clarity", "source": "inform", "dest": "inform", "after": "get_user_input"},
-        {"trigger": "change_entitity", "source": "inform", "dest": "update", "after": "get_user_input"},
-        {"trigger": "updated", "source": "update", "dest": "inform", "after": "get_user_input"},
-        {"trigger": "confirm", "source": "inform", "dest": "affirm", "after": "get_user_input"},
-        {"trigger": "affirm_end", "source": "affirm", "dest": "end", "after": "get_user_input"},
-        {"trigger": "new_query_affirm", "source": "affirm", "dest": "inform", "after": "get_user_input"}
+        {"trigger": "initialize", "source": "dummy", "dest": "greetings"},
+        {"trigger": "clarity", "source": "greetings", "dest": "inform"},
+        {"trigger": "ask_question", "source": "greetings", "dest": "question"},
+        {"trigger": "ask_update", "source": ["inform","affirm"], "dest": "update"},
+        {"trigger": "update_info", "source": "update", "dest": "inform"},
+        {"trigger": "confirm", "source": "inform", "dest": "affirm"},        
+        {"trigger": "end_convo", "source": ["affirm", "inform", "question", "update"]   ,"dest": "end"}
+             
     ]
+    
+    chatbotOutput = ""
+    
     
     def __init__(self):
         """ Also included a dummy state since state callbacks are not fired when machine is
@@ -207,10 +213,10 @@ class DialogFlow(object):
         self.machine = Machine(model=self, transitions = DialogFlow.transitions, 
                                states = DialogFlow.states, initial="dummy")
     
-    def get_user_input(self):
+    def get_user_input(self, userInput):
         """ Callback for capturing user input and performing state transition """
         
-        self.userInput = input()
+        self.userInput = userInput
         
         if self.userInput == "quit":
             sys.exit()
@@ -220,84 +226,190 @@ class DialogFlow(object):
         intent = engine.get_intent(self.userInput)
                
         nextTransition = engine.dialog_policy(intent, self.previousStates, self.transitions)
+        
+        print("Next Transition is {0}".format(nextTransition))
       
         self.trigger(nextTransition["trigger"])
         
     def on_enter_greetings(self):
         sentences = ["Hi!", "Greetings!", "Welcome", "Salut!"]
         
-        print(random.choice(sentences) + "\n" + "How can I help you ?")
+        response = random.choice(sentences) + "\n" + "How can I help you ?"
+        self.chatbotOutput = response
+        
+        print(response)
         
         self.previousStates.append("greetings")
         
-    def on_enter_clarity(self):
-    	
-    	response = "Looks like I still haven't gotten information about "
-    	
-    	response_substring = []
-    	
-    	for remaining_slot in self.frame.checkForAllInfo():
-    		if remaining_slot == "dst_city":
-    			response_substring.append("destination city")
-    		if remaining_slot == "sou_city":
-    			response_substring.append("source city")
-    		if remaining_slot == "budget":
-    			response_substring.append("your trip budget")
-    		if remaining_slot == "start_date":
-    			response_substring.append("when you plan to leave")
-    		if remaining_slot == "end_date":
-    			response_substring.append("when do you plan to come back")
-    		if remaining_slot == "people":
-    			response_substring.append("how many people is the package for")
-    	        
-    	
-    	#Response string formation
-    	
-    	if len(remaining_slot) == 1:
-    		response  = response + remaining_slot[0]
-    	
-    	else:
-    		for substring in remaining_slot[:-1]:
-    			response = response + ", " + substring
-    	
-    		response = response + ",and " + remaining_slot[-1]
-    	
-    	print(response)
-    	
-    	
         
+    def on_enter_question(self):
+               
+        response = "Would you like to book a trip package ?"
+        
+        self.chatbotOutput = response
+        
+        print(response)
+        
+        self.previousStates.append("question")
+  	
+                  
     def on_enter_inform(self):
         """ The main meaty part of the dialogflow manager. Responsible for 
                     1. Information extraction
                     2. Database query formation
                     3. Figuring out what other slots to fill """
         
-        #Extract entities
+        print("Inform State Reached")
+        
+        
+        self.previousStates.append("inform")
+    	
+    	
+    	#Extract entities
         
         self.frame.extract_entities(self.userInput)
-        
-        
-        
+                
         if len(self.frame.checkForAllInfo()) == 0:
             #Got all info, now moving to confirm
             
             self.trigger("confirm")
         
         else:
+          
             #Need more info
+            response = "Looks like I still haven't gotten information about "
+
+            response_substring = []
+    	
+            for remaining_slot in self.frame.checkForAllInfo():
+               if remaining_slot == "dst_city":
+                  response_substring.append("destination city")
+               if remaining_slot == "sou_city":
+                  response_substring.append("source city")
+               if remaining_slot == "budget":
+                  response_substring.append("your trip budget")
+               if remaining_slot == "start_date":
+                  response_substring.append("when you plan to leave")
+               if remaining_slot == "end_date":
+                  response_substring.append("when do you plan to come back")
+               if remaining_slot == "people":
+                  response_substring.append("how many people is the package for")
+		 
             
-            self.trigger("clarity")
-        
-    def on_enter_affirm_end(self):
-    	print("Thank you confirming. I have booked the package for you. Have a great day !!!")
+            #Response string formation
+
+            if len(remaining_slot) == 1:
+               response  = response + remaining_slot[0]
+
+            else:
+               for substring in response_substring[:-1]:
+                  response = response + ", " + substring
+
+               response = response + ",and " + remaining_slot[-1]
+
+
+            print(response)
+
+            self.chatbotOutput = response
     	
 
+
     def on_enter_affirm(self):
+    
+        print("Affirm State Reached")
+    
+        response = "Thank you for the details. Shall I go ahead and confirm it ?"
         
-        print("Thank you for the details. Shall I go ahead and confirm it ?")
+        self.chatbotOutput = response
         
-        print("So, you would")
+        print(response)
+        
+        self.previousStates.append("affirm")
+        
+    def on_enter_end(self):
+    
+        print("End State Reached")
+    
+        response = "Thank you booking the trip package with us. Have a nice day!!!"
+        
+        self.chatbotOutput = response
+        
+        print(response)
+        
+        self.previousStates.append("end")
+        
+        print("Conversation ended")
     
     
-df = DialogFlow()
-df.initialize()
+    def on_enter_update(self):
+    
+    	print("Update State Reached")
+    	
+    	response = "What do you want to change ?"
+    	
+    	self.chatbotOutput = response
+    
+    	print(response)
+    	
+    	self.previousStates.append("update")
+    
+    
+    
+    
+    
+df = object
+isConversationStarted = False
+conversation = []
+
+app = Flask(__name__)
+app.secret_key = b'_5dfgtrdf45345^73@#4'
+app.debug = True
+
+
+@app.route("/input", methods=["GET"])
+def converse():
+
+        global isConversationStarted
+        global conversation
+        global df
+        
+        utterance = request.args.get("text")
+        
+        print(utterance)
+        
+        if not isConversationStarted:
+        	
+        	df = DialogFlow()
+        	df.initialize()
+        	isConversationStarted = True
+        
+        else:
+        	
+        	df.get_user_input(utterance)
+        
+        response = df.chatbotOutput
+        conversation.append(response)
+        
+        
+        return render_template("template.html", data=conversation)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

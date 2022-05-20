@@ -77,6 +77,8 @@ def predict():
 	print(intents[0][0])
 
 	print("Prediction ended")
+	
+	return intents[0][0]
 
 
   
