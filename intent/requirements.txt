@@ -1,0 +1,5 @@
+nltk
+pandas
+sklearn
+boto3
+flask
