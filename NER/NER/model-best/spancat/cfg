@@ -1,0 +1,25 @@
+{
+  "labels":[
+    "str_date",
+    "or_city",
+    "dst_city",
+    "budget",
+    "end_date",
+    "n_adults",
+    "n_children",
+    "duration",
+    "category",
+    "min_duration",
+    "name",
+    "price",
+    "count_name",
+    "ref_anaphora",
+    "seat",
+    "count",
+    "count_dst_city",
+    "gst_rating"
+  ],
+  "spans_key":"sc",
+  "threshold":0.5,
+  "max_positive":null
+}
