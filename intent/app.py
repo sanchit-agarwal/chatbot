@@ -18,9 +18,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import hamming_loss
+from sklearn.metrics import multilabel_confusion_matrix , ConfusionMatrixDisplay
 import json
 import re
 import pandas as pd
+import numpy as np
 
 
 
@@ -80,7 +82,18 @@ def predict():
 	
 	return intents[0][0]
 
-
+@app.route("/getMetrics", methods=["GET"]) #Return matrics of prediction on whole dataset
+def getMetrics():
+	classifier = read_classifier(classifier_path)
+	multilabel,tfidf,dataframe = NLP_parameters(dataset)
+	y = multilabel.transform(dataframe['labels'])
+	X = tfidf.transform(dataframe['text_processed'])
+	y_pred = classifier.predict(X)
+	loss = hamming_loss(y_pred, y)
+	score = hamming_score(y_pred, y)
+	confusion_matrix = multilabel_confusion_matrix(y, y_pred)
+	labels = multilabel.classes_
+	return loss, score, confusion_matrix, labels
   
 
 def NLP_parameters(dataset):
@@ -187,3 +200,16 @@ def lemmatization(texts):
 
 def remove_stopwords(texts,stop_words):
   return [[word for word in token if word not in stop_words] for token in texts]
+
+def hamming_score(y_true, y_pred, normalize=True, sample_weight=None):
+    acc_list = []
+    for i in range(y_true.shape[0]):
+        set_true = set( np.where(y_true[i])[0] )
+        set_pred = set( np.where(y_pred[i])[0] )
+        tmp_a = None
+        if len(set_true) == 0 and len(set_pred) == 0:
+            tmp_a = 1
+        else:
+            tmp_a = len(set_true.intersection(set_pred))/float(len(set_true.union(set_pred)) )
+        acc_list.append(tmp_a)
+    return np.mean(acc_list)
