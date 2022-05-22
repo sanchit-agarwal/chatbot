@@ -28,13 +28,16 @@ def predict():
 	doc = nlp(input_text)
 	span_group = doc.spans["sc"] # default key, can be changed
 	scores = span_group.attrs["scores"]
+	
+	response_dict = {}
 
 	# Note that `scores` is an array with one score for each span in the group
 	for span, score, ent in zip(span_group, scores, doc.ents):
-	    print("LABEL :",span.label_,"start :","span :", span, "len :",len(span.text),"score : ",score,ent.start_char,ent.end_char  )
+		print("LABEL :",span.label_,"start :","span :", span, "len :",len(span.text),"score : ",score,ent.start_char,ent.end_char  )
 
-	return [[span.label_ for span in span_group], [span.text for span in span_group]]
-	
+		response_dict[span.label_] = span.text
+      
+	return response_dict
 
 
 @app.route("/train")

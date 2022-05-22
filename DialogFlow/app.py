@@ -6,7 +6,8 @@ import random
 from flask import Flask, request, render_template
 import json
 
-intent_url = "http://127.0.0.1:5000/predict"
+intent_url = "http://127.0.0.1:5001/predict"
+ner_url = "http://127.0.0.1:5002/predict"
 
 class RuleBasedDialog:
 
@@ -23,24 +24,7 @@ class RuleBasedDialog:
         print("Intent detected for {0}: \n{1}".format(userInput, intent))
         
         return intent
-        
-        """ask_question_regex = r"(.*) book (.*)"
-        clarity_regex = r"Do|What|Are|Can (.*)"
-        new_query_regex = r"(.*) trip|package|options (.*)"
-        affirm_regex = r"(.*) confirm|okay|book|take (.*)"
-        negate_regex = r"(.*) no|nope (.*)"
-        
-        if re.match(ask_question_regex, userInput):
-            return "inform"
-        elif re.match(clarity_regex, userInput):
-            return "clarity"
-        elif re.match(new_query_regex, userInput):
-            return "new_query"
-        elif re.match(affirm_regex, userInput):
-            return "affirm"
-        else:
-            return "negate" """
-        
+                
     def dialog_policy(self, intent, previousStates, transitions):
     
         #User gives some information or intents to book a package
@@ -52,11 +36,17 @@ class RuleBasedDialog:
             return [x for x in transitions if x["trigger"] == "ask_question"][0]
         
         #Chatbot asked the question, user wants to book
-        elif intent in ["inform","book"] and previousStates[-1] == "ask_question":
+        elif intent in ["inform","book"] and previousStates[-1] == "question":
+            return [x for x in transitions if x["trigger"] == "clarity"][0]
+            
+            
+        #Chatbot needs more information from the user to complete its task
+        elif intent in ["inform","book"] and previousStates[-1] == "inform":
             return [x for x in transitions if x["trigger"] == "clarity"][0]
         
+        
         #Chatbot asked the question, user doesn't intent to book. Ask the question again, and again, and again, and.....
-        elif previousStates[-1] == "ask_question":
+        elif previousStates[-1] == "question":
             return [x for x in transitions if x["trigger"] == "ask_question"][0]
         
         #User intents to change information
@@ -88,11 +78,11 @@ class DialogFrame:
     
     slot = {
       "dst_city": None,
-      "sou_city": None,
+      "or_city": None,
       "budget": None,
-      "start_date": None,
+      "str_date": None,
       "end_date": None,
-      "people": None
+      "n_adults": None
     }
     
     def __init__(object):
@@ -169,21 +159,35 @@ class DialogFrame:
         
         #END
         
-        print(self.slot)
+        response = requests.get(ner_url, params={"text": userInput})
         
-        self.slot["sou_city"] = "Gotham City"
-        self.slot["dst_city"] = "Minas Anor"
-        self.slot["budget"] = 300
-        self.slot["start_date"] = datetime.datetime.now()
-        self.slot["end_date"] = datetime.datetime.now()
-        self.slot["people"] = 4
+        ner = json.loads(response.content.decode('utf-8'))
         
-        print(self.slot["sou_city"])
-        print(self.slot["dst_city"])
-        print(self.slot["budget"])
-        print(self.slot["start_date"])
-        print(self.slot["end_date"])
-        print(self.slot["people"])
+        print("NER detected for {0}".format(userInput))
+        
+        print(ner)
+        
+        for key,value in ner.items():
+        	if key in self.slot:
+        		self.slot[key] = value
+        
+        
+        
+        #print(self.slot)
+        
+        #self.slot["sou_city"] = "Gotham City"
+        #self.slot["dst_city"] = "Minas Anor"
+        #self.slot["budget"] = 300
+        #self.slot["start_date"] = datetime.datetime.now()
+        #self.slot["end_date"] = datetime.datetime.now()
+        #self.slot["people"] = 4
+        
+        #print(self.slot["sou_city"])
+        #print(self.slot["dst_city"])
+        #print(self.slot["budget"])
+        #print(self.slot["start_date"])
+        #print(self.slot["end_date"])
+        #print(self.slot["people"])
         
         
 
@@ -194,7 +198,7 @@ class DialogFlow(object):
     frame = DialogFrame()
     transitions = [
         {"trigger": "initialize", "source": "dummy", "dest": "greetings"},
-        {"trigger": "clarity", "source": "greetings", "dest": "inform"},
+        {"trigger": "clarity", "source": ["greetings", "inform"], "dest": "inform"},
         {"trigger": "ask_question", "source": "greetings", "dest": "question"},
         {"trigger": "ask_update", "source": ["inform","affirm"], "dest": "update"},
         {"trigger": "update_info", "source": "update", "dest": "inform"},
@@ -226,6 +230,8 @@ class DialogFlow(object):
         intent = engine.get_intent(self.userInput)
                
         nextTransition = engine.dialog_policy(intent, self.previousStates, self.transitions)
+        
+        print("Previous states of the chatbot were {0}".format(self.previousStates))
         
         print("Next Transition is {0}".format(nextTransition))
       
@@ -284,15 +290,15 @@ class DialogFlow(object):
             for remaining_slot in self.frame.checkForAllInfo():
                if remaining_slot == "dst_city":
                   response_substring.append("destination city")
-               if remaining_slot == "sou_city":
+               if remaining_slot == "or_city":
                   response_substring.append("source city")
                if remaining_slot == "budget":
                   response_substring.append("your trip budget")
-               if remaining_slot == "start_date":
+               if remaining_slot == "str_date":
                   response_substring.append("when you plan to leave")
                if remaining_slot == "end_date":
                   response_substring.append("when do you plan to come back")
-               if remaining_slot == "people":
+               if remaining_slot == "n_adults":
                   response_substring.append("how many people is the package for")
 		 
             
@@ -305,7 +311,7 @@ class DialogFlow(object):
                for substring in response_substring[:-1]:
                   response = response + ", " + substring
 
-               response = response + ",and " + remaining_slot[-1]
+               response = response + ",and " + response_substring[-1]
 
 
             print(response)
@@ -388,6 +394,9 @@ def converse():
         	df.get_user_input(utterance)
         
         response = df.chatbotOutput
+        if utterance is not None:
+        	conversation.append(utterance)
+        
         conversation.append(response)
         
         
