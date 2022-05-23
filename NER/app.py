@@ -88,7 +88,7 @@ def train():
 
 					#print(entities)
 					if len(entities) > 0:
-						data.append((utterance, {"entities": entities}))
+						data.append((utterance.lower(), {"entities": entities}))
 	    
     
 	nlp = spacy.blank("en") # load a new spacy model
