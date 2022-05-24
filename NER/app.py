@@ -135,7 +135,7 @@ def train():
 
 	nlp.add_pipe('spancat')
 	
-	print(run_command("python3 -m spacy init config Adam_v1_config.cfg --lang en --pipeline  ner,spancat --optimize efficiency --force"))
+	print(run_command("python3 -m spacy init config Adam_v1_config.cfg --lang en --pipeline  ner,spancat --optimize accuracy --force"))
 
 	print(run_command("python3 -m spacy train Adam_v1_config.cfg --output ./NER --paths.train ./spansdata.spacy --paths.dev ./spansdata.spacy"))
 

@@ -1,0 +1,5 @@
+ConversationID,UserInput,PredictedIntents,ChatBotReply,Enteties
+ConversationID,UserInput,PredictedIntents,ChatBotReply,Enteties
+5b5cfce9-249e-47e6-8762-7f2439075bea,,,"Salut!
+How can I help you ?",
+5b5cfce9-249e-47e6-8762-7f2439075bea,I want to book a package,{},"Looks like I still haven't gotten information about , destination city, source city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",

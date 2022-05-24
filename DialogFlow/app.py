@@ -5,6 +5,7 @@ from transitions import Machine
 import random
 from flask import Flask, request, render_template
 import json
+from monitoring import *
 
 intent_url = "http://127.0.0.1:5001/predict"
 ner_url = "http://127.0.0.1:5002/predict"
@@ -22,6 +23,8 @@ class RuleBasedDialog:
         intent = str(response.text)
         
         print("Intent detected for {0}: \n{1}".format(userInput, intent))
+        
+        log_string[2] = intent
         
         return intent
                 
@@ -166,6 +169,9 @@ class DialogFrame:
         print("NER detected for {0}".format(userInput))
         
         print(ner)
+        
+        global log_string
+        log_string[2] = ner
         
         for key,value in ner.items():
         	if key in self.slot:
@@ -366,10 +372,12 @@ class DialogFlow(object):
 df = object
 isConversationStarted = False
 conversation = []
-
+conversation_id = None
 app = Flask(__name__)
 app.secret_key = b'_5dfgtrdf45345^73@#4'
 app.debug = True
+log_string = [None, None, None, None, None]
+initiate_logFile()
 
 
 @app.route("/input", methods=["GET"])
@@ -378,6 +386,7 @@ def converse():
         global isConversationStarted
         global conversation
         global df
+        global conversation_id
         
         utterance = request.args.get("text")
         
@@ -388,6 +397,7 @@ def converse():
         	df = DialogFlow()
         	df.initialize()
         	isConversationStarted = True
+        	conversation_id = generate_ConversationID()
         
         else:
         	
@@ -399,6 +409,12 @@ def converse():
         
         conversation.append(response)
         
+        global log_string
+        log_string[0] = conversation_id
+        log_string[1] = utterance
+        log_string[3] = response
+        
+        add_logFile(log_string[0], log_string[1], log_string[2], log_string[3], log_string[4])
         
         return render_template("template.html", data=conversation)
 
