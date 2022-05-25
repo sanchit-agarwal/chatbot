@@ -3,3 +3,31 @@ ConversationID,UserInput,PredictedIntents,ChatBotReply,Enteties
 5b5cfce9-249e-47e6-8762-7f2439075bea,,,"Salut!
 How can I help you ?",
 5b5cfce9-249e-47e6-8762-7f2439075bea,I want to book a package,{},"Looks like I still haven't gotten information about , destination city, source city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+ConversationID,UserInput,PredictedIntents,ChatBotReply,Enteties
+5bc5ce86-6ed4-430c-8808-da6ab8e6d86a,,,"Hi!
+How can I help you ?",
+5bc5ce86-6ed4-430c-8808-da6ab8e6d86a,I want to book a package from Gotham City to Mos Esley,{'or_city': 'Gotham'},"Looks like I still haven't gotten information about , destination city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+5bc5ce86-6ed4-430c-8808-da6ab8e6d86a,I am looking for a budget of $2100. We are 4 adults,{},"Looks like I still haven't gotten information about , destination city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+5bc5ce86-6ed4-430c-8808-da6ab8e6d86a,We have a budget of $2100,{},"Looks like I still haven't gotten information about , destination city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+5bc5ce86-6ed4-430c-8808-da6ab8e6d86a,We are 4 people and would like to depart from Kochi and come back to Denver by August 31,{},"Looks like I still haven't gotten information about , destination city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+5bc5ce86-6ed4-430c-8808-da6ab8e6d86a,You will arrive in Queenstown on September 12 and stay at the Emerald Mountain Hotel. You will return to Fort Lauderdale on September 20th.,"{'dst_city': 'Fort', 'str_date': 'September'}","Looks like I still haven't gotten information about , your trip budget, when do you plan to come back,and how many people is the package for",
+5bc5ce86-6ed4-430c-8808-da6ab8e6d86a,I can not do this booking now. Goodbye,goodbye,Thank you booking the trip package with us. Have a nice day!!!,
+ConversationID,UserInput,PredictedIntents,ChatBotReply,Enteties
+e80a5b53-c822-4f41-a603-13875a645395,,,"Greetings!
+How can I help you ?",
+e80a5b53-c822-4f41-a603-13875a645395,,"<!doctype html>
+<html lang=en>
+<title>500 Internal Server Error</title>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+",Would you like to book a trip package ?,
+ConversationID,UserInput,PredictedIntents,ChatBotReply,Enteties
+49ddcad7-9300-4400-ad1c-093af84c9d97,,,"Hi!
+How can I help you ?",
+49ddcad7-9300-4400-ad1c-093af84c9d97,I want to book a package,{},"Looks like I still haven't gotten information about , destination city, source city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+49ddcad7-9300-4400-ad1c-093af84c9d97,We want to book from Gotham city to Mos Esely,{'or_city': 'Gotham'},"Looks like I still haven't gotten information about , destination city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+49ddcad7-9300-4400-ad1c-093af84c9d97,I am looking for a budget of $2100. We are 4 people,{},"Looks like I still haven't gotten information about , destination city, your trip budget, when you plan to leave, when do you plan to come back,and how many people is the package for",
+49ddcad7-9300-4400-ad1c-093af84c9d97,You will arrive in Queenstown on September 12 and stay at the Emerald Mountain Hotel. You will return to Fort Lauderdale on September 20th.,"{'dst_city': 'Fort', 'str_date': 'September'}","Looks like I still haven't gotten information about , your trip budget, when do you plan to come back,and how many people is the package for",
+49ddcad7-9300-4400-ad1c-093af84c9d97,I don't want to book the package anymore. Goodbye,{},"Looks like I still haven't gotten information about , your trip budget, when do you plan to come back,and how many people is the package for",
+49ddcad7-9300-4400-ad1c-093af84c9d97,I don't want to book the package. thankyou,{},"Looks like I still haven't gotten information about , your trip budget, when do you plan to come back,and how many people is the package for",
+49ddcad7-9300-4400-ad1c-093af84c9d97,thank you but i am done,thankyou,Thank you for chatting with me. Have a nice day!!!,

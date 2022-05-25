@@ -180,21 +180,7 @@ class DialogFrame:
         
         
         #print(self.slot)
-        
-        #self.slot["sou_city"] = "Gotham City"
-        #self.slot["dst_city"] = "Minas Anor"
-        #self.slot["budget"] = 300
-        #self.slot["start_date"] = datetime.datetime.now()
-        #self.slot["end_date"] = datetime.datetime.now()
-        #self.slot["people"] = 4
-        
-        #print(self.slot["sou_city"])
-        #print(self.slot["dst_city"])
-        #print(self.slot["budget"])
-        #print(self.slot["start_date"])
-        #print(self.slot["end_date"])
-        #print(self.slot["people"])
-        
+                
         
 
 class DialogFlow(object):
@@ -342,7 +328,7 @@ class DialogFlow(object):
     
         print("End State Reached")
     
-        response = "Thank you booking the trip package with us. Have a nice day!!!"
+        response = "Thank you for chatting with me. Have a nice day!!!"
         
         self.chatbotOutput = response
         
