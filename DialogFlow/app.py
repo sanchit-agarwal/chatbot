@@ -24,6 +24,8 @@ class RuleBasedDialog:
         
         print("Intent detected for {0}: \n{1}".format(userInput, intent))
         
+        global log_string
+        
         log_string[2] = intent
         
         return intent
@@ -171,7 +173,7 @@ class DialogFrame:
         print(ner)
         
         global log_string
-        log_string[2] = ner
+        log_string[4] = ner
         
         for key,value in ner.items():
         	if key in self.slot:
