@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+ dialog_manager:
+  build:
+   context: ./DialogFlow
+  ports:
+   - "80:80"
+  container_name: chatbot_dialogflow
+ ner:
+  build:
+   context: ./NER
+  ports:
+   - "5002:5002"
+  container_name: chatbot_ner
+  hostname: ner
+ intent:
+  build:
+   context: ./intent
+  ports:
+   - "5001:5001"
+  container_name: chatbot_intent
+  hostname: intent

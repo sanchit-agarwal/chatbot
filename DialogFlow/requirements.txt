@@ -1,3 +1,4 @@
 transitions
 flask
+gunicorn
 requests

@@ -7,8 +7,8 @@ from flask import Flask, request, render_template
 import json
 from monitoring import *
 
-intent_url = "http://127.0.0.1:5001/predict"
-ner_url = "http://127.0.0.1:5002/predict"
+intent_url = "http://intent:5001/predict"
+ner_url = "http://ner:5002/predict"
 
 class RuleBasedDialog:
 
